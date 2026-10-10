@@ -21,8 +21,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 
+
+// Shared text color used throughout the app.
 private val Navy = Color(0xFF102C54)
-private val Yellow = Color(0xFFFFD166)
+
 
 // Opens the app.
 class MainActivity : ComponentActivity() {
@@ -41,6 +43,7 @@ class MainActivity : ComponentActivity() {
 // Displays the header, weather screen, and bottom navigation.
 @Composable
 fun WeatherApp() {
+    // Remembers the selected screen, including after rotation.
     var selectedScreen by rememberSaveable {
         mutableStateOf("Now")
     }
@@ -48,6 +51,7 @@ fun WeatherApp() {
     val backgroundColour = Color(0xFFFAF8FE)
     val barColour = Color(0xFFDBE2FC)
 
+    // Provides the main layout and padding for system bars.
     Scaffold(
         containerColor = barColour
     ) { innerPadding ->
@@ -78,6 +82,7 @@ fun WeatherApp() {
                     .background(backgroundColour)
                     .padding(horizontal = 20.dp)
             ) {
+                // Displays the screen selected through bottom navigation.
                 if (selectedScreen == "Now") {
                     CurrentWeatherScreen()
                 } else {
@@ -94,6 +99,7 @@ fun WeatherApp() {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                // Creates the two navigation icons and labels.
                 listOf("Now", "Daily").forEach { screen ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -114,7 +120,7 @@ fun WeatherApp() {
                                 modifier = Modifier.size(28.dp)
                             )
                         }
-
+                        // Makes the selected screen's label bold.
                         Text(
                             text = screen,
                             color = Navy,
@@ -135,6 +141,7 @@ fun WeatherApp() {
 
 // Shows placeholder current weather.
 @Composable
+// Centres the content and allows scrolling on smaller screens.
 fun CurrentWeatherScreen() {
     Column(
         modifier = Modifier
@@ -144,6 +151,7 @@ fun CurrentWeatherScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
+        // Loads the weather icon from res/drawable.
         Image(
             painter = painterResource(
                 id = R.drawable.weather_partly_cloudy
@@ -151,7 +159,7 @@ fun CurrentWeatherScreen() {
             contentDescription = "Partly cloudy",
             modifier = Modifier.size(150.dp)
         )
-
+        // Shows the sample condition, temperature, and feels-like value.
         Text(
             text = "Partly cloudy",
             color = Navy,
@@ -171,17 +179,39 @@ fun CurrentWeatherScreen() {
             fontSize = 20.sp
         )
 
-        Text(
-            text = "Wind: SW 18 km/h",
-            color = Navy,
-            fontSize = 18.sp
-        )
+        Spacer(modifier = Modifier.height(8.dp))
 
-        Text(
-            text = "High: 18°C   Low: 10°C",
-            color = Navy,
-            fontSize = 16.sp
-        )
+        // Groups the high, low, and wind details together.
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Text(
+                    text = "High: 18°C",
+                    color = Navy,
+                    fontSize = 18.sp
+                )
+
+                Text(
+                    text = "Low: 10°C",
+                    color = Navy,
+                    fontSize = 18.sp
+                )
+            }
+
+            Text(
+                text = "Wind: SW 18 km/h",
+                color = Navy,
+                fontSize = 16.sp
+            )
+        }
     }
 }
 
@@ -190,43 +220,50 @@ data class ForecastDay(
     val day: String,
     val condition: String,
     val temperatures: String,
-    val image: Int
+    val image: Int,
+    val summary: String
 )
 
 // Displays three days of placeholder forecast data.
 @Composable
 fun ForecastScreen() {
+    // Fixed sample dates and weather values; no live weather service.
     val forecast = listOf(
         ForecastDay(
-            "Saturday",
+            "Saturday, Oct 10",
             "Sunny",
             "High: 18°C   Low: 11°C",
-            R.drawable.weather_sunny
+            R.drawable.weather_sunny,
+            "Clear skies. Rain chance: 10%. Wind: SW 15 km/h. Humidity: 65%."
+
         ),
         ForecastDay(
-            "Sunday",
+            "Sunday, Oct 11",
             "Partly cloudy",
             "High: 17°C   Low: 10°C",
-            R.drawable.weather_partly_cloudy
+            R.drawable.weather_partly_cloudy,
+            "Unclear skies. Rain chance: 19%. Wind: SW 15 km/h. Humidity: 15%."
+
         ),
         ForecastDay(
-            "Monday",
+            "Monday, Oct 12",
             "Cloudy",
             "High: 15°C   Low: 9°C",
-            R.drawable.weather_cloudy
+            R.drawable.weather_cloudy,
+            "Rain chance: 10%. Wind: SW 15 km/h. Humidity: 65%."
         )
     )
-
+    // Arranges the forecast vertically and enables scrolling.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(bottom = 20.dp),
+            .padding(top = 20.dp, bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
             text = "3-Day Forecast",
-            color = Color.White,
+            color = Navy,
             fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
@@ -243,16 +280,17 @@ fun ForecastScreen() {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
+                        .padding(20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Loads the icon assigned to this forecast day.
                     Image(
                         painter = painterResource(id = day.image),
                         contentDescription = day.condition,
                         modifier = Modifier.size(56.dp)
                     )
-
+                    // Uses the remaining card width for the day's weather details.
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -267,6 +305,12 @@ fun ForecastScreen() {
                             text = day.temperatures,
                             fontSize = 14.sp
                         )
+                        Text(
+                            text = day.summary,
+                            fontSize = 16.sp,
+                            lineHeight = 24.sp
+                        )
+
                     }
                 }
             }
