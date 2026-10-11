@@ -31,7 +31,6 @@ Weather and navigation icons are vector XML resources stored in `app/src/main/re
 
 - Kotlin
 - Jetpack Compose
-- Material 3
 - Android Studio
 - Git and GitHub
 
