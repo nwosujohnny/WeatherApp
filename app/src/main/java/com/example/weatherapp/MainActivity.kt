@@ -20,13 +20,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.weatherapp.ui.theme.WeatherAppTheme
+import kotlin.math.roundToInt
 
-
-// Shared text color used throughout the app.
+// Shared text colour.
 private val Navy = Color(0xFF102C54)
 
-
-// Opens the app.
+// Opens the app and applies its theme.
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,18 +39,32 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// Displays the header, weather screen, and bottom navigation.
+// Converts Celsius to Fahrenheit when selected.
+fun displayTemperature(celsius: Int, useFahrenheit: Boolean): String {
+    return if (useFahrenheit) {
+        val fahrenheit = (celsius * 9.0 / 5.0 + 32).roundToInt()
+        "$fahrenheit°F"
+    } else {
+        "$celsius°C"
+    }
+}
+
+// Displays the header, selected screen, and bottom navigation.
 @Composable
 fun WeatherApp() {
-    // Remembers the selected screen, including after rotation.
+    // Preserves the screen and unit selection after rotation.
     var selectedScreen by rememberSaveable {
         mutableStateOf("Now")
+    }
+
+    var useFahrenheit by rememberSaveable {
+        mutableStateOf(false)
     }
 
     val backgroundColour = Color(0xFFFAF8FE)
     val barColour = Color(0xFFDBE2FC)
 
-    // Provides the main layout and padding for system bars.
+    // Adds padding to keep content clear of the system bars.
     Scaffold(
         containerColor = barColour
     ) { innerPadding ->
@@ -60,21 +73,36 @@ fun WeatherApp() {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Full-width rectangular header.
+            // Header with the location and temperature unit button.
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(barColour)
                     .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
-                Text(
-                    text = "Halifax, Nova Scotia",
-                    color = Navy,
-                    fontSize = 24.sp
-                )
+                Column {
+                    Text(
+                        text = "Halifax, Nova Scotia",
+                        color = Navy,
+                        fontSize = 24.sp
+                    )
+
+                    TextButton(
+                        onClick = { useFahrenheit = !useFahrenheit }
+                    ) {
+                        Text(
+                            text = if (useFahrenheit) {
+                                "Switch to °C"
+                            } else {
+                                "Switch to °F"
+                            },
+                            color = Navy
+                        )
+                    }
+                }
             }
 
-            // Weather content fills the area between the bars.
+            // Gives the selected weather screen the remaining space.
             Box(
                 modifier = Modifier
                     .weight(1f)
@@ -82,15 +110,14 @@ fun WeatherApp() {
                     .background(backgroundColour)
                     .padding(horizontal = 20.dp)
             ) {
-                // Displays the screen selected through bottom navigation.
                 if (selectedScreen == "Now") {
-                    CurrentWeatherScreen()
+                    CurrentWeatherScreen(useFahrenheit)
                 } else {
-                    ForecastScreen()
+                    ForecastScreen(useFahrenheit)
                 }
             }
 
-            // Full-width rectangular bottom navigation.
+            // Bottom navigation with clickable icons.
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -99,12 +126,10 @@ fun WeatherApp() {
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Creates the two navigation icons and labels.
                 listOf("Now", "Daily").forEach { screen ->
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Clicking the icon changes the screen.
                         IconButton(
                             onClick = { selectedScreen = screen }
                         ) {
@@ -120,17 +145,17 @@ fun WeatherApp() {
                                 modifier = Modifier.size(28.dp)
                             )
                         }
-                        // Makes the selected screen's label bold.
+
+                        // Bold text identifies the selected screen.
                         Text(
                             text = screen,
                             color = Navy,
                             fontSize = 14.sp,
-                            fontWeight =
-                                if (selectedScreen == screen) {
-                                    FontWeight.Bold
-                                } else {
-                                    FontWeight.Normal
-                                }
+                            fontWeight = if (selectedScreen == screen) {
+                                FontWeight.Bold
+                            } else {
+                                FontWeight.Normal
+                            }
                         )
                     }
                 }
@@ -139,10 +164,10 @@ fun WeatherApp() {
     }
 }
 
-// Shows placeholder current weather.
+// Shows placeholder current weather in the selected unit.
 @Composable
-// Centres the content and allows scrolling on smaller screens.
-fun CurrentWeatherScreen() {
+fun CurrentWeatherScreen(useFahrenheit: Boolean) {
+    // Allows scrolling when the content exceeds the screen height.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -151,7 +176,6 @@ fun CurrentWeatherScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Loads the weather icon from res/drawable.
         Image(
             painter = painterResource(
                 id = R.drawable.weather_partly_cloudy
@@ -159,7 +183,7 @@ fun CurrentWeatherScreen() {
             contentDescription = "Partly cloudy",
             modifier = Modifier.size(150.dp)
         )
-        // Shows the sample condition, temperature, and feels-like value.
+
         Text(
             text = "Partly cloudy",
             color = Navy,
@@ -167,21 +191,21 @@ fun CurrentWeatherScreen() {
         )
 
         Text(
-            text = "16°C",
+            text = displayTemperature(16, useFahrenheit),
             color = Navy,
             fontSize = 64.sp,
             fontWeight = FontWeight.Bold
         )
 
         Text(
-            text = "Feels like: 14°C",
+            text = "Feels like: ${displayTemperature(14, useFahrenheit)}",
             color = Navy,
             fontSize = 20.sp
         )
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Groups the high, low, and wind details together.
+        // Groups the high, low, and wind details.
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -194,13 +218,13 @@ fun CurrentWeatherScreen() {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Text(
-                    text = "High: 18°C",
+                    text = "High: ${displayTemperature(18, useFahrenheit)}",
                     color = Navy,
                     fontSize = 18.sp
                 )
 
                 Text(
-                    text = "Low: 10°C",
+                    text = "Low: ${displayTemperature(10, useFahrenheit)}",
                     color = Navy,
                     fontSize = 18.sp
                 )
@@ -215,45 +239,51 @@ fun CurrentWeatherScreen() {
     }
 }
 
-// Stores the information shown for one forecast day.
+// Stores one forecast day's data; temperatures are Celsius numbers.
 data class ForecastDay(
     val day: String,
     val condition: String,
-    val temperatures: String,
+    val high: Int,
+    val low: Int,
     val image: Int,
     val summary: String
 )
 
-// Displays three days of placeholder forecast data.
+// Displays three days of placeholder weather.
 @Composable
-fun ForecastScreen() {
-    // Fixed sample dates and weather values; no live weather service.
+fun ForecastScreen(useFahrenheit: Boolean) {
+    // Fixed sample dates, weather values, and drawable icons.
     val forecast = listOf(
         ForecastDay(
-            "Saturday, Oct 10",
-            "Sunny",
-            "High: 18°C   Low: 11°C",
-            R.drawable.weather_sunny,
-            "Clear skies. Rain chance: 10%. Wind: SW 15 km/h. Humidity: 65%."
-
+            day = "Saturday, Oct 10",
+            condition = "Sunny",
+            high = 18,
+            low = 11,
+            image = R.drawable.weather_sunny,
+            summary = "Clear skies. Rain chance: 10%. " +
+                    "Wind: SW 15 km/h. Humidity: 65%."
         ),
         ForecastDay(
-            "Sunday, Oct 11",
-            "Partly cloudy",
-            "High: 17°C   Low: 10°C",
-            R.drawable.weather_partly_cloudy,
-            "Unclear skies. Rain chance: 19%. Wind: SW 15 km/h. Humidity: 15%."
-
+            day = "Sunday, Oct 11",
+            condition = "Partly cloudy",
+            high = 17,
+            low = 10,
+            image = R.drawable.weather_partly_cloudy,
+            summary = "A mix of sun and clouds. Rain chance: 19%. " +
+                    "Wind: SW 15 km/h. Humidity: 15%."
         ),
         ForecastDay(
-            "Monday, Oct 12",
-            "Cloudy",
-            "High: 15°C   Low: 9°C",
-            R.drawable.weather_cloudy,
-            "Rain chance: 10%. Wind: SW 15 km/h. Humidity: 65%."
+            day = "Monday, Oct 12",
+            condition = "Cloudy",
+            high = 15,
+            low = 9,
+            image = R.drawable.weather_cloudy,
+            summary = "Overcast skies. Rain chance: 10%. " +
+                    "Wind: SW 15 km/h. Humidity: 65%."
         )
     )
-    // Arranges the forecast vertically and enables scrolling.
+
+    // Arranges the heading and cards vertically with scrolling.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -284,13 +314,13 @@ fun ForecastScreen() {
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Loads the icon assigned to this forecast day.
                     Image(
                         painter = painterResource(id = day.image),
                         contentDescription = day.condition,
                         modifier = Modifier.size(56.dp)
                     )
-                    // Uses the remaining card width for the day's weather details.
+
+                    // Uses the remaining card width for weather details.
                     Column(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -300,17 +330,24 @@ fun ForecastScreen() {
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
+
                         Text(text = day.condition)
+
+                        // Formats both temperatures using the selected unit.
                         Text(
-                            text = day.temperatures,
+                            text = "High: ${
+                                displayTemperature(day.high, useFahrenheit)
+                            }   Low: ${
+                                displayTemperature(day.low, useFahrenheit)
+                            }",
                             fontSize = 14.sp
                         )
+
                         Text(
                             text = day.summary,
                             fontSize = 16.sp,
                             lineHeight = 24.sp
                         )
-
                     }
                 }
             }
