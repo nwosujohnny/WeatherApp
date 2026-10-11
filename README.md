@@ -11,6 +11,7 @@ This phase focuses on user interface design and navigation. All weather informat
 - **Bottom navigation:** Clock and calendar icons switch between Now and Daily.
 - **Scrollable screens:** Allow weather details to remain accessible when screen space is limited.
 - **Saved screen selection:** Preserves the selected screen during device rotation.
+- **Added Celsius/Fahrenheit switching on both screens to the features.
 
 ## Screenshots
 
